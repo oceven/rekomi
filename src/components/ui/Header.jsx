@@ -52,7 +52,7 @@ const Header = ({
         onClick={() => navigate('/')}
         className="text-xl font-bold text-white tracking-tight cursor-pointer hover:text-blue-400 transition-colors"
       >
-        rekomi
+        reko<span className="underline decoration-blue-500 underline-offset-4">mi</span>
       </h1>
 
       {/* Search Section */}
@@ -149,8 +149,8 @@ const Header = ({
         </Link>
 
         {/* Logout */}
-        <button 
-          onClick={handleLogout} 
+        <button
+          onClick={handleLogout}
           className="p-2 text-slate-400 hover:text-red-400 transition-colors"
         >
           <LogOut size={20} />
