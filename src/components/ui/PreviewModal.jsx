@@ -124,7 +124,8 @@ const PreviewModal = ({ item, isOpen, onClose, onAdd, mediaType = 'movie', sessi
             : `${TMDB_IMAGE_BASE}${item.poster_path}`
         : PLACEHOLDER_IMAGE;
     const title = item.title || item.name;
-    const year = (item.release_date || item.first_air_date)?.split('-')[0] || 'N/A';
+    // Use fetched details first, then fall back to item data
+    const year = (details?.release_date || item.release_date || details?.first_air_date || item.first_air_date)?.split('-')[0] || item.year || 'N/A';
     // Handle genres - can be array of strings or array of objects with name property
     const genreList = details?.genres || item.genres || [];
     const genre = genreList.map(g => typeof g === 'string' ? g : g.name).join(', ');

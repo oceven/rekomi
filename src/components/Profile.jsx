@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { saveMediaItem } from '../services/mediaServices';
+import { saveMediaItem } from '../services/mediaServices'; // Integrated service
 import useUserProfile from '../hooks/useUserProfile';
 import Sidebar from './Sidebar';
 import Header from './ui/Header';
@@ -10,7 +10,6 @@ import PreviewModal from './ui/PreviewModal';
 import { Mail, Library, Users, Camera, Edit2, Check, Star } from 'lucide-react';
 
 const Profile = ({ session }) => {
-
     // useParams pulls the friend's ID from the URL
     const { userId } = useParams();
     const isOwnProfile = !userId || userId === session?.user?.id;
@@ -20,7 +19,6 @@ const Profile = ({ session }) => {
 
     const [profileData, setProfileData] = useState({ username: '', avatar_url: '', bio: '' });
     const [stats, setStats] = useState({ totalItems: 0, friends: 0 });
-
     const [sharedItems, setSharedItems] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [isEditingBio, setIsEditingBio] = useState(false);
@@ -80,16 +78,28 @@ const Profile = ({ session }) => {
                 setLoading(false);
             }
         };
-        fetchAllProfileData();
-    }, [userId, session]);
 
-    // Open media preview modal
+        fetchAllProfileData();
+    }, [userId, session]); // Essential: Listens for URL changes
+
     const handleCardClick = (item) => {
+        // Convert external_id to number for TMDB API compatibility
+        const itemId = (item.media_type === 'movie' || item.media_type === 'anime' || item.media_type === 'manga')
+            ? Number(item.external_id)
+            : item.external_id;
+
         setSelectedMedia({
-            id: item.external_id,
+            id: itemId,
             title: item.title,
+            name: item.title,
             poster_path: item.poster_url,
-            media_type: item.media_type
+            media_type: item.media_type,
+            // PreviewModal will fetch the full details using the id and media_type
+            year: item.year,
+            release_date: item.data?.release_date,
+            first_air_date: item.data?.first_air_date,
+            overview: item.data?.overview,
+            genres: item.data?.genres
         });
         setIsPreviewOpen(true);
     };
@@ -108,7 +118,6 @@ const Profile = ({ session }) => {
         setIsPreviewOpen(false);
     };
 
-    // Update bio in the database
     const handleUpdateBio = async () => {
         await supabase.from('profiles').update({ bio: bioText }).eq('id', session.user.id);
         setProfileData(prev => ({ ...prev, bio: bioText }));
@@ -116,7 +125,6 @@ const Profile = ({ session }) => {
         setToast({ isVisible: true, message: 'Bio updated!', type: 'success' });
     };
 
-    // Avatar upload handler
     const handleAvatarUpload = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -137,7 +145,6 @@ const Profile = ({ session }) => {
         }
     };
 
-    // handle loading state so page isn't just blank while fetching
     if (loading && !profileData.username) {
         return (
             <div className="flex h-screen bg-slate-950 text-white overflow-hidden">
@@ -157,17 +164,16 @@ const Profile = ({ session }) => {
             </div>
         );
     }
+
     return (
         <div className="flex h-screen bg-slate-950 text-white overflow-hidden font-sans">
             <Sidebar />
             <Toast isVisible={toast.isVisible} message={toast.message} type={toast.type} onClose={() => setToast(prev => ({ ...prev, isVisible: false }))} />
-
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header username={ownUsername} avatar_url={ownAvatar} showSearch={false} session={session} />
                 <main className="flex-1 overflow-y-auto px-8 py-10 scrollbar-hide animate-in fade-in duration-500">
                     <div className="max-w-4xl mx-auto">
-
-                        {/* Profile header */}
+                        {/* Profile Info Card */}
                         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 mb-8">
                             <div className="flex flex-col md:flex-row items-center gap-8">
                                 <div className="relative group">
@@ -187,7 +193,6 @@ const Profile = ({ session }) => {
                                         </label>
                                     )}
                                 </div>
-
                                 <div className="flex-1 text-center md:text-left">
                                     <h2 className="text-3xl font-bold mb-2">@{profileData.username}</h2>
                                     {isEditingBio ? (
@@ -212,9 +217,8 @@ const Profile = ({ session }) => {
                             </div>
                         </div>
 
-                        {/* Stats Grid */}
+                        {/* Stats Section */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                            {/* Library Stat */}
                             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-5">
                                 <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500">
                                     <Library size={24} />
@@ -224,8 +228,6 @@ const Profile = ({ session }) => {
                                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Media in Library</p>
                                 </div>
                             </div>
-
-                            {/* Friends Circle Stat */}
                             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-5">
                                 <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
                                     <Users size={24} />
@@ -285,6 +287,7 @@ const Profile = ({ session }) => {
                     onClose={() => setIsPreviewOpen(false)}
                     onAdd={handleAddFromShowcase}
                     mediaType={selectedMedia.media_type}
+                    session={session}
                 />
             )}
         </div>

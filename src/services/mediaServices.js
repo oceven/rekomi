@@ -34,6 +34,13 @@ export const saveMediaItem = async (userId, item, type) => {
                 : `https://image.tmdb.org/t/p/w500${item.poster_path}`,
             media_type: type,
             status: 'later',
+            year: item.year || (item.release_date?.split('-')[0]) || (item.first_air_date?.split('-')[0]) || null,
+            data: {
+                release_date: item.release_date,
+                first_air_date: item.first_air_date,
+                overview: item.overview,
+                genres: item.genres
+            },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
