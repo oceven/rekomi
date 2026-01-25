@@ -1,88 +1,292 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { saveMediaItem } from '../services/mediaServices';
 import useUserProfile from '../hooks/useUserProfile';
 import Sidebar from './Sidebar';
 import Header from './ui/Header';
-import { Mail, Film, Users } from 'lucide-react';
+import Toast from './ui/Toast';
+import PreviewModal from './ui/PreviewModal';
+import { Mail, Library, Users, Camera, Edit2, Check, Star } from 'lucide-react';
 
 const Profile = ({ session }) => {
-    const { username } = useUserProfile(session);
+
+    // useParams pulls the friend's ID from the URL
+    const { userId } = useParams();
+    const isOwnProfile = !userId || userId === session?.user?.id;
+
+    // Header data for the current logged-in user
+    const { username: ownUsername, avatar_url: ownAvatar, refreshProfile } = useUserProfile(session);
+
+    const [profileData, setProfileData] = useState({ username: '', avatar_url: '', bio: '' });
     const [stats, setStats] = useState({ totalItems: 0, friends: 0 });
 
+    const [sharedItems, setSharedItems] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [bioText, setBioText] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' });
+
+    const [selectedMedia, setSelectedMedia] = useState(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
     useEffect(() => {
-        const fetchStats = async () => {
-            if (!session?.user?.id) return;
+        const fetchAllProfileData = async () => {
+            // Determine if we are fetching our own data or a friend's
+            const targetId = userId || session?.user?.id;
+            if (!targetId) return;
 
-            // Fetch total media items
-            const { count: mediaCount } = await supabase
-                .from('media_items')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', session.user.id);
+            setLoading(true);
+            try {
+                // 1. Fetch Profile Details
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('username, avatar_url, bio')
+                    .eq('id', targetId)
+                    .single();
 
-            // Fetch total accepted friends
-            const { count: friendCount } = await supabase
-                .from('friendships')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'accepted')
-                .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`);
+                if (profile) {
+                    setProfileData(profile);
+                    setBioText(profile.bio || '');
+                }
 
-            setStats({ totalItems: mediaCount || 0, friends: friendCount || 0 });
+                // 2. Fetch Library Stats
+                const { count: mediaCount } = await supabase
+                    .from('media_items')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', targetId);
+
+                const { count: friendCount } = await supabase
+                    .from('friendships')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'accepted')
+                    .or(`user_id.eq.${targetId},friend_id.eq.${targetId}`);
+
+                setStats({ totalItems: mediaCount || 0, friends: friendCount || 0 });
+
+                // 3. Fetch Personal Showcase Items
+                const { data: shared } = await supabase
+                    .from('media_items')
+                    .select('*')
+                    .eq('user_id', targetId)
+                    .eq('is_shared', true)
+                    .order('created_at', { ascending: false });
+
+                setSharedItems(shared || []);
+            } catch (err) {
+                console.error("Error fetching profile data:", err);
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchStats();
-    }, [session]);
+        fetchAllProfileData();
+    }, [userId, session]);
 
+    // Open media preview modal
+    const handleCardClick = (item) => {
+        setSelectedMedia({
+            id: item.external_id,
+            title: item.title,
+            poster_path: item.poster_url,
+            media_type: item.media_type
+        });
+        setIsPreviewOpen(true);
+    };
+
+    // logic aligned with Dashboard.jsx to prevent duplicates
+    const handleAddFromShowcase = async (media) => {
+        const { error, duplicate } = await saveMediaItem(session.user.id, media, media.media_type);
+
+        if (duplicate) {
+            setToast({ isVisible: true, message: `"${media.title}" is already in your library`, type: 'error' });
+        } else if (error) {
+            setToast({ isVisible: true, message: 'Failed to add to library', type: 'error' });
+        } else {
+            setToast({ isVisible: true, message: `Added "${media.title}" to your library!`, type: 'success' });
+        }
+        setIsPreviewOpen(false);
+    };
+
+    // Update bio in the database
+    const handleUpdateBio = async () => {
+        await supabase.from('profiles').update({ bio: bioText }).eq('id', session.user.id);
+        setProfileData(prev => ({ ...prev, bio: bioText }));
+        setIsEditingBio(false);
+        setToast({ isVisible: true, message: 'Bio updated!', type: 'success' });
+    };
+
+    // Avatar upload handler
+    const handleAvatarUpload = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${session.user.id}-${Date.now()}.${fileExt}`;
+            await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', session.user.id);
+            setProfileData(prev => ({ ...prev, avatar_url: publicUrl }));
+            if (refreshProfile) refreshProfile();
+            setToast({ isVisible: true, message: 'Avatar updated!', type: 'success' });
+        } catch (error) {
+            setToast({ isVisible: true, message: 'Upload failed', type: 'error' });
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    // handle loading state so page isn't just blank while fetching
+    if (loading && !profileData.username) {
+        return (
+            <div className="flex h-screen bg-slate-950 text-white overflow-hidden">
+                <Sidebar />
+                <div className="flex-1 flex flex-col bg-slate-950">
+                    <Header username="" avatar_url={null} showSearch={false} session={session} />
+                    <main className="flex-1 px-8 py-10 animate-pulse">
+                        <div className="max-w-4xl mx-auto">
+                            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 mb-8 h-48" />
+                            <div className="grid grid-cols-2 gap-4 mb-10">
+                                <div className="bg-slate-900 h-24 rounded-2xl" />
+                                <div className="bg-slate-900 h-24 rounded-2xl" />
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="flex h-screen bg-slate-950 text-white overflow-hidden font-sans">
             <Sidebar />
+            <Toast isVisible={toast.isVisible} message={toast.message} type={toast.type} onClose={() => setToast(prev => ({ ...prev, isVisible: false }))} />
+
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header username={username} showSearch={false} />
-                <main className="flex-1 overflow-y-auto px-8 py-10 scrollbar-hide">
+                <Header username={ownUsername} avatar_url={ownAvatar} showSearch={false} session={session} />
+                <main className="flex-1 overflow-y-auto px-8 py-10 scrollbar-hide animate-in fade-in duration-500">
                     <div className="max-w-4xl mx-auto">
 
                         {/* Profile header */}
                         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 mb-8">
                             <div className="flex flex-col md:flex-row items-center gap-8">
-                                <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center text-4xl font-black shadow-2xl border-4 border-slate-800">
-                                    {username?.charAt(0).toUpperCase() || 'U'}
+                                <div className="relative group">
+                                    <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl border-4 border-slate-800 bg-slate-800">
+                                        {profileData.avatar_url ? (
+                                            <img src={profileData.avatar_url} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-blue-600 flex items-center justify-center text-4xl font-black uppercase">
+                                                {profileData.username?.charAt(0)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {isOwnProfile && (
+                                        <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                                            <Camera size={32} />
+                                            <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                                        </label>
+                                    )}
                                 </div>
 
-                                <div className="text-center md:text-left">
-                                    <h2 className="text-3xl font-bold mb-2">@{username}</h2>
-                                    <p className="text-slate-400 flex items-center justify-center md:justify-start gap-2">
-                                        <Mail size={16} /> {session?.user?.email}
-                                    </p>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h2 className="text-3xl font-bold mb-2">@{profileData.username}</h2>
+                                    {isEditingBio ? (
+                                        <div className="flex flex-col gap-2">
+                                            <textarea
+                                                value={bioText}
+                                                onChange={(e) => setBioText(e.target.value)}
+                                                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-white focus:border-blue-500 outline-none"
+                                                rows={3}
+                                            />
+                                            <button onClick={handleUpdateBio} className="self-end p-2 bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors">
+                                                <Check size={16} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center md:justify-start gap-2">
+                                            <p className="text-slate-400 text-sm italic">{profileData.bio || "No bio yet."}</p>
+                                            {isOwnProfile && <button onClick={() => setIsEditingBio(true)} className="text-slate-600 hover:text-blue-400"><Edit2 size={14} /></button>}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                             {/* Library Stat */}
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-5 group hover:border-purple-500/30 transition-colors">
-                                <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500 group-hover:bg-purple-500/20 transition-colors">
-                                    <Film size={24} />
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-5">
+                                <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500">
+                                    <Library size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-black text-white">{stats.totalItems}</p>
-                                    <p className="text-xs text-slate-500 uppercase font-bold tracking-widest">Items in Library</p>
+                                    <p className="text-2xl font-black">{stats.totalItems}</p>
+                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Media in Library</p>
                                 </div>
                             </div>
 
                             {/* Friends Circle Stat */}
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-5 group hover:border-blue-500/30 transition-colors">
-                                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-blue-500/20 transition-colors">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center gap-5">
+                                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
                                     <Users size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-black text-white">{stats.friends}</p>
-                                    <p className="text-xs text-slate-500 uppercase font-bold tracking-widest">Friends in Circle</p>
+                                    <p className="text-2xl font-black">{stats.friends}</p>
+                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Friends in Circle</p>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Showcase Section */}
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <Star className="text-yellow-500 fill-yellow-500" size={20} />
+                                <h3 className="text-xl font-bold">Personal Showcase</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {sharedItems.length > 0 ? (
+                                    sharedItems.map(item => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => handleCardClick(item)}
+                                            className="bg-slate-900 border border-slate-800 p-4 rounded-3xl flex gap-5 transition-all hover:border-blue-500/50 hover:bg-slate-800/50 cursor-pointer group overflow-hidden"
+                                        >
+                                            <img src={item.poster_url} className="w-24 h-36 object-cover rounded-2xl shadow-lg flex-shrink-0 group-hover:scale-105 transition-transform" />
+                                            <div className="flex-1 py-1 min-w-0">
+                                                <h4 className="font-bold text-white text-lg mb-1 truncate">{item.title}</h4>
+                                                <div className="flex gap-1 mb-3">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star key={i} size={14} className={i < item.rating ? 'text-yellow-500 fill-yellow-500' : 'text-slate-800'} />
+                                                    ))}
+                                                </div>
+                                                {item.comment && (
+                                                    <p className="text-sm text-slate-400 italic break-words line-clamp-4 leading-relaxed">
+                                                        "{item.comment}"
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center py-20 bg-slate-900/30 border-2 border-dashed border-slate-800 rounded-3xl">
+                                        <p className="text-slate-600">No items shared in the showcase yet.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </main>
             </div>
+            {/* Modal for previewing and adding items */}
+            {selectedMedia && (
+                <PreviewModal
+                    item={selectedMedia}
+                    isOpen={isPreviewOpen}
+                    onClose={() => setIsPreviewOpen(false)}
+                    onAdd={handleAddFromShowcase}
+                    mediaType={selectedMedia.media_type}
+                />
+            )}
         </div>
     );
 };

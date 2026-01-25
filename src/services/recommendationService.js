@@ -1,23 +1,54 @@
 import { supabase } from '../lib/supabaseClient';
+import { normalizeExternalId } from './mediaServices';
 
-// Send a recommendation to a friend
-export const sendRecommendation = async (senderId, receiverId, media) => {
+/**
+ * Sends a recommendation to a friend
+ * @param {string} senderId - The user sending the recommendation
+ * @param {string} receiverId - The user receiving the recommendation
+ * @param {object} mediaObj - Complete media object with all necessary fields
+ */
+export const sendRecommendation = async (senderId, receiverId, mediaObj) => {
+  const mediaType = mediaObj.media_type || 'movie';
+  
+  // Normalize the ID to match what's stored in the database
+  const normalizedId = normalizeExternalId(mediaObj.id, mediaType);
+  
+  // Ensure we're storing ALL fields the PreviewModal needs
+  const completeMediaData = {
+    media_id: normalizedId, // Store the NORMALIZED ID
+    title: mediaObj.title || mediaObj.name,
+    poster_path: mediaObj.poster_path,
+    media_type: mediaType,
+    // These fields are critical for the modal to show year/genre/synopsis
+    release_date: mediaObj.release_date,
+    first_air_date: mediaObj.first_air_date,
+    overview: mediaObj.overview,
+    genres: mediaObj.genres
+  };
+
   const { data, error } = await supabase
-    .from('recommendations')
+    .from('notifications')
     .insert([
       {
         sender_id: senderId,
         receiver_id: receiverId,
-        media_id: media.id.toString(),
-        media_type: media.media_type || 'movie',
-        media_title: media.title,
-        media_poster: media.poster_path || media.poster_url,
+        type: 'recommendation',
+        is_read: false,
+        data: completeMediaData
       }
     ]);
-  return { data, error };
+
+  if (error) {
+    console.error('Error sending recommendation:', error);
+    return { error };
+  }
+
+  return { data };
 };
 
-//Fetch notifications for a user
+/**
+ * Fetches all recommendations received by the user
+ */
 export const getNotifications = async (userId) => {
   const { data, error } = await supabase
     .from('recommendations')
@@ -30,7 +61,9 @@ export const getNotifications = async (userId) => {
   return { data, error };
 };
 
-//Mark a recommendation as read
+/**
+ * Marks a specific notification as seen
+ */
 export const markAsRead = async (notificationId) => {
   const { data, error } = await supabase
     .from('recommendations')

@@ -7,7 +7,7 @@ export const searchUsers = async (query, currentUserId) => {
     // 1. Get all IDs of people you are already connected to
     const { data: existing } = await supabase
         .from('friendships')
-        .select('user_id, friend_id')
+        .select('id, username, avatar_url')
         .or(`user_id.eq.${currentUserId},friend_id.eq.${currentUserId}`);
 
     const connectedIds = existing?.map(f =>
@@ -68,8 +68,8 @@ export const getMySocialCircle = async (userId) => {
         status,
         user_id,
         friend_id,
-        initiator:profiles!user_id (id, username),
-        receiver:profiles!friend_id (id, username)
+        initiator:profiles!user_id (id, username, avatar_url),
+        receiver:profiles!friend_id (id, username, avatar_url)
       `)
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
@@ -82,9 +82,9 @@ export const getMySocialCircle = async (userId) => {
  */
 export const deleteFriendship = async (requestId) => {
     const { data, error } = await supabase
-      .from('friendships')
-      .delete()
-      .eq('id', requestId);
-      
+        .from('friendships')
+        .delete()
+        .eq('id', requestId);
+
     return { data, error };
-  };
+};

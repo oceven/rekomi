@@ -34,7 +34,7 @@ const SignUp = () => {
                     <label className="block text-sm font-medium text-slate-400 mb-1">Username</label>
                     <input
                         type="text"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none  placeholder:text-slate-600"
                         placeholder="username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -46,7 +46,7 @@ const SignUp = () => {
                     <label className="block text-sm font-medium text-slate-400 mb-1">Email</label>
                     <input
                         type="email"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none  placeholder:text-slate-600"
                         placeholder="name@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}

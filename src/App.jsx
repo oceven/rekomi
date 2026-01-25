@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard';
 import Library from './components/Library';
 import Friends from './components/Friends';
 import Profile from './components/Profile';
+import Notifications from './components/Notifications';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -50,6 +51,8 @@ function App() {
         <Route path="/library" element={<Library session={session} />} />
         <Route path="/friends" element={<Friends session={session} />} />
         <Route path="/profile" element={session ? <Profile session={session} /> : <Navigate to="/login" />} />
+        <Route path="/notifications" element={<Notifications session={session} />} />
+        <Route path="/profile/:userId" element={<Profile session={session} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

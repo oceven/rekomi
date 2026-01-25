@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
-import { searchUsers, sendFriendRequest, getMySocialCircle, respondToRequest } from '../services/friendServices';
+import { Link } from 'react-router-dom';
+import { searchUsers, sendFriendRequest, getMySocialCircle, respondToRequest, deleteFriendship } from '../services/friendServices';
 import useUserProfile from '../hooks/useUserProfile';
 import Sidebar from './Sidebar';
 import Header from './ui/Header';
 import Toast from './ui/Toast';
-import { UserPlus, Check, X as CloseIcon } from 'lucide-react';
-import { deleteFriendship } from '../services/friendServices';
+import { UserPlus, Check, X as CloseIcon, Star } from 'lucide-react';
 
 const Friends = ({ session }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [socialList, setSocialList] = useState([]);
     const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' });
-    const { username } = useUserProfile(session);
+    const { username, avatar_url } = useUserProfile(session);
 
     // Load social circle (friends and requests)
     const loadSocial = async () => {
@@ -83,9 +83,16 @@ const Friends = ({ session }) => {
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header username={username} searchQuery={searchQuery} setSearchQuery={setSearchQuery} searchPlaceholder="Search usernames..." />
+                <Header
+                    session={session}
+                    avatar_url={avatar_url}
+                    username={username}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    searchPlaceholder="Search usernames..."
+                />
 
-                <main className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide">
+                <main className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide animate-in fade-in duration-500">
                     <div className="mb-8">
                         <h2 className="text-4xl font-bold mb-1">Social</h2>
                         <p className="text-slate-500">Connect with others and manage your circle</p>
@@ -102,7 +109,16 @@ const Friends = ({ session }) => {
 
                                     return (
                                         <div key={user.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between group hover:border-blue-500/50 transition-all">
-                                            <span className="font-medium text-white">@{user.username}</span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex items-center justify-center border border-slate-700">
+                                                    {user.avatar_url ? (
+                                                        <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold">{user.username?.charAt(0).toUpperCase()}</span>
+                                                    )}
+                                                </div>
+                                                <span className="font-medium text-white">@{user.username}</span>
+                                            </div>
                                             <button onClick={() => handleRequest(user)} className="p-2 bg-blue-600 rounded-lg hover:bg-blue-500 transition-all shadow-lg">
                                                 <UserPlus size={18} />
                                             </button>
@@ -125,8 +141,12 @@ const Friends = ({ session }) => {
                                     return (
                                         <div key={item.id} className="bg-slate-900 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center font-bold text-blue-400">
-                                                    {friend.username?.charAt(0).toUpperCase()}
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-800 flex items-center justify-center font-bold text-blue-400 border border-slate-700">
+                                                    {friend.avatar_url ? (
+                                                        <img src={friend.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        friend.username?.charAt(0).toUpperCase()
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium">@{friend.username}</p>
@@ -162,40 +182,46 @@ const Friends = ({ session }) => {
                                     const friend = item.user_id === session.user.id ? item.receiver : item.initiator;
 
                                     return (
-                                        <div
-                                            key={item.id}
-                                            className="group bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden transition-all hover:border-blue-500/50 flex flex-col"
-                                        >
-                                            {/* Square Header Area */}
-                                            <div className="aspect-square w-full bg-slate-800/50 flex items-center justify-center relative">
-                                                {/* Profile Initial */}
-                                                <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-xl border-4 border-slate-900 z-10 group-hover:scale-105 transition-transform duration-300">
-                                                    <span className="text-xl font-bold text-white">
-                                                        {friend.username?.charAt(0).toUpperCase()}
-                                                    </span>
+                                        <div key={item.id} className="group flex flex-col">
+                                            {/* Link wrapper added here */}
+                                            <Link
+                                                to={`/profile/${friend.id}`}
+                                                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden transition-all hover:border-blue-500/50 flex flex-col"
+                                            >
+                                                {/* Full-bleed Avatar Container */}
+                                                <div className="aspect-square w-full bg-slate-800 relative overflow-hidden">
+                                                    {friend.avatar_url ? (
+                                                        <img
+                                                            src={friend.avatar_url}
+                                                            alt={friend.username}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-blue-600 flex items-center justify-center">
+                                                            <span className="text-3xl font-black text-white">
+                                                                {friend.username?.charAt(0).toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60" />
                                                 </div>
 
-                                                {/* Hover Overlay */}
-                                                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 backdrop-blur-[2px]">
-                                                    {/* Optional: Add a 'View Profile' or 'Chat' icon here later */}
-                                                </div>
-                                            </div>
 
-                                            {/* Content Area */}
-                                            <div className="p-4 flex flex-col gap-3">
-                                                <div className="text-center">
+                                                {/* Content Area */}
+                                                <div className="p-4 text-center">
                                                     <p className="text-sm font-bold text-white truncate">@{friend.username}</p>
-                                                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mt-0.5">Friend</p>
+                                                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mt-0.5">View Showcase</p>
                                                 </div>
 
-                                                {/* Action Button - Always visible but styled subtly */}
-                                                <button
-                                                    onClick={() => handleResponse(item.id, 'declined')}
-                                                    className="w-full py-2 bg-slate-800 text-slate-400 hover:bg-red-600/20 hover:text-red-400 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-transparent hover:border-red-600/30"
-                                                >
-                                                    Unfriend
-                                                </button>
-                                            </div>
+                                            </Link>
+
+                                            {/* Keep Unfriend outside the Link to prevent accidental navigation */}
+                                            <button
+                                                onClick={() => handleResponse(item.id, 'declined')}
+                                                className="mt-2 w-full py-2 bg-slate-900/50 text-slate-500 hover:bg-red-600/20 hover:text-red-400 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border border-slate-800 hover:border-red-600/30"
+                                            >
+                                                Unfriend
+                                            </button>
                                         </div>
                                     );
                                 })}
@@ -208,7 +234,7 @@ const Friends = ({ session }) => {
                     </section>
                 </main>
             </div>
-        </div>
+        </div >
     );
 };
 

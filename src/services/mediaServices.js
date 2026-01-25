@@ -1,59 +1,52 @@
 import { supabase } from '../lib/supabaseClient';
 
-/**
- * Saves a movie, anime, or book to the user's personal list.
- * Returns { data, error, duplicate } - duplicate is true if item already exists
- */
-export const saveMediaItem = async (userId, item, type) => {
-  // Check if item already exists in user's library
-  const { data: existing } = await supabase
-    .from('media_items')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('external_id', item.id.toString())
-    .eq('media_type', type) 
-    .single();
-
-  if (existing) {
-    return { data: null, error: null, duplicate: true };
-  }
-
-  // Handle poster URL - anime has full URL, movies need TMDB base
-  let posterUrl = null;
-  if (item.poster_path) {
-    posterUrl = item.poster_path.startsWith('http') 
-      ? item.poster_path 
-      : `https://image.tmdb.org/t/p/w500${item.poster_path}`;
-  }
-
-  // Insert new media item
-  const { data, error } = await supabase
-    .from('media_items')
-    .insert([
-      {
-        user_id: userId,
-        title: item.title || item.name,
-        media_type: type,
-        external_id: item.id.toString(),
-        poster_url: posterUrl,
-        year: (item.release_date || item.first_air_date)?.split('-')[0] || null,
-        status: 'later',
-      }
-    ]);
-
-  return { data, error, duplicate: false };
+// Helper to ensure IDs are consistent across services
+export const normalizeExternalId = (id) => {
+    if (!id) return null;
+    return id.toString();
 };
 
-/**
- * Fetches the user's saved items based on category (movie, anime, book, manga)
- */
-export const getLibraryItems = async (userId, type) => {
-  const { data, error } = await supabase
-    .from('media_items')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('media_type', type)
-    .order('created_at', { ascending: false });
+export const saveMediaItem = async (userId, item, type) => {
+    try {
+        const cleanId = normalizeExternalId(item.id || item.external_id); //
 
-  return { data, error };
+        // 1. Check if the item already exists
+        const { data: existing, error: fetchError } = await supabase
+            .from('media_items')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('external_id', cleanId)
+            .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        if (existing) {
+            return { duplicate: true };
+        }
+
+        // 2. Prepare data for insert
+        const mediaData = {
+            user_id: userId,
+            external_id: cleanId,
+            title: item.title || item.name,
+            poster_url: item.poster_path?.startsWith('http')
+                ? item.poster_path
+                : `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+            media_type: type,
+            status: 'later',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+
+        const { data, error } = await supabase
+            .from('media_items')
+            .insert([mediaData])
+            .select();
+
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error in saveMediaItem:', error);
+        return { data: null, error };
+    }
 };
