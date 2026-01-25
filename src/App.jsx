@@ -5,6 +5,8 @@ import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
+import Friends from './components/Friends';
+import Profile from './components/Profile';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -46,6 +48,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard session={session} />} />
         <Route path="/library" element={<Library session={session} />} />
+        <Route path="/friends" element={<Friends session={session} />} />
+        <Route path="/profile" element={session ? <Profile session={session} /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

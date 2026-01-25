@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Star } from 'lucide-react';
+import { X, Star, Send, ChevronRight } from 'lucide-react';
 import { PLACEHOLDER_IMAGE } from '../../constants';
 import { getMovieDetails } from '../../services/tmdbService';
 import { getAnimeDetails } from '../../services/animeService';

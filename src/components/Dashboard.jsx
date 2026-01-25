@@ -96,7 +96,7 @@ const Dashboard = ({ session }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedMediaType, setSelectedMediaType] = useState('movie');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const { username } = useUserProfile(session);
+  const { username, avatar_url } = useUserProfile(session);
 
   // Track if initial load has happened
   const [initialLoaded, setInitialLoaded] = useState(false);
@@ -219,7 +219,7 @@ const Dashboard = ({ session }) => {
     <div className="flex h-screen bg-slate-950 text-white font-sans overflow-hidden">
       <Sidebar />
       
-      // Toast Notification
+      
       <Toast 
         message={toast.message} 
         isVisible={toast.isVisible} 
