@@ -12,10 +12,24 @@ import Toast from './Toast';
 /**
  * Preview Modal for exploring media (movies, anime, books, manga)
  * Shows: poster, title, year, genre, synopsis, Add to Library, and Recommend buttons
+ * Can also show status picker for shared list items
  */
-const PreviewModal = ({ item, isOpen, onClose, onAdd, mediaType = 'movie', session }) => {
+const PreviewModal = ({
+    item,
+    isOpen,
+    onClose,
+    onAdd,
+    mediaType = 'movie',
+    session,
+    showStatusPicker = false,
+    currentStatus = 'later',
+    onStatusChange,
+    statusCategories = [],
+    onDelete = null
+}) => {
     const [details, setDetails] = useState(null);
     const [adding, setAdding] = useState(false);
+    const [status, setStatus] = useState(currentStatus);
 
     // Recommendation States
     const [showFriendPicker, setShowFriendPicker] = useState(false);
@@ -115,6 +129,11 @@ const PreviewModal = ({ item, isOpen, onClose, onAdd, mediaType = 'movie', sessi
         }
     }, [isOpen]);
 
+    // Sync status when item or currentStatus changes
+    useEffect(() => {
+        setStatus(currentStatus);
+    }, [currentStatus, item]);
+
     if (!isOpen || !item) return null;
 
     // Handle both TMDB (path) and Jikan (full URL) poster formats
@@ -136,6 +155,13 @@ const PreviewModal = ({ item, isOpen, onClose, onAdd, mediaType = 'movie', sessi
         await onAdd(item);
         setAdding(false);
         onClose();
+    };
+
+    const handleDelete = () => {
+        if (onDelete) {
+            onDelete();
+            onClose();
+        }
     };
 
     return (
@@ -210,29 +236,81 @@ const PreviewModal = ({ item, isOpen, onClose, onAdd, mediaType = 'movie', sessi
                                 </p>
 
                                 {synopsis && (
-                                    <p className="text-slate-400 text-sm mb-4">{synopsis}</p>
+                                    <p className="text-slate-400 text-sm mb-4 leading-relaxed">{synopsis}</p>
+                                )}
+
+                                {/* Status Picker for Shared Lists */}
+                                {showStatusPicker && statusCategories.length > 0 && (
+                                    <div className="mb-4">
+                                        <label className="text-xs text-slate-500 mb-1 block">Status</label>
+                                        <select
+                                            value={status}
+                                            onChange={(e) => {
+                                                setStatus(e.target.value);
+                                                onStatusChange && onStatusChange(e.target.value);
+                                            }}
+                                            className="w-full bg-slate-800 border border-slate-700 py-2 px-3 rounded-lg text-sm outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                                        >
+                                            {statusCategories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 )}
                             </div>
                         </div>
                     </div>
 
                     <div className="p-6 pt-0 flex flex-col gap-3">
-                        <button
-                            onClick={handleAdd}
-                            disabled={adding}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
-                        >
-                            <Plus size={18} />
-                            {adding ? 'Adding...' : 'Add to Library'}
-                        </button>
+                        {onDelete ? (
+                            // Shared List Context - Show both Remove and Add to Library
+                            <>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={handleDelete}
+                                        className="px-4 py-2 bg-red-600/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-600/30 transition-colors"
+                                    >
+                                        Remove
+                                    </button>
+                                    <button
+                                        onClick={handleAdd}
+                                        disabled={adding}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 shadow-lg shadow-blue-500/20"
+                                    >
+                                        <Plus size={18} />
+                                        {adding ? 'Adding...' : 'Add to Library'}
+                                    </button>
+                                </div>
+                                {session && (
+                                    <button
+                                        onClick={handleOpenRecommend}
+                                        className="w-full py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 flex items-center justify-center gap-2 border border-slate-700 transition-all"
+                                    >
+                                        <Send size={14} /> Recommend to a friend
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            // Regular Context - Show Add to Library
+                            <>
+                                <button
+                                    onClick={handleAdd}
+                                    disabled={adding}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50"
+                                >
+                                    <Plus size={18} />
+                                    {adding ? 'Adding...' : 'Add to Library'}
+                                </button>
 
-                        {session && (
-                            <button
-                                onClick={handleOpenRecommend}
-                                className="w-full py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 flex items-center justify-center gap-2 border border-slate-700 transition-all"
-                            >
-                                <Send size={14} /> Recommend to a friend
-                            </button>
+                                {session && (
+                                    <button
+                                        onClick={handleOpenRecommend}
+                                        className="w-full py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 flex items-center justify-center gap-2 border border-slate-700 transition-all"
+                                    >
+                                        <Send size={14} /> Recommend to a friend
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

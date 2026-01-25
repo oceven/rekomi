@@ -238,15 +238,8 @@ const SearchDropdown = ({ session, mediaType, onItemAdded, listId, username }) =
 // ============================================
 // Library Card Component (Same as Library)
 // ============================================
-const LibraryCard = ({ item, onClick, onDelete }) => {
+const LibraryCard = ({ item, onClick }) => {
     const posterUrl = item.poster_url || PLACEHOLDER_IMAGE;
-
-    const handleDelete = (e) => {
-        e.stopPropagation(); // Prevent card click when deleting
-        if (window.confirm(`Remove "${item.title}" from this shared list?`)) {
-            onDelete(item.dbId); // Use database ID for deletion
-        }
-    };
 
     return (
         <div
@@ -259,15 +252,6 @@ const LibraryCard = ({ item, onClick, onDelete }) => {
                     className="w-full aspect-[2/3] object-cover"
                     alt={item.title}
                 />
-
-                {/* Delete button */}
-                <button
-                    onClick={handleDelete}
-                    className="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    title="Remove from list"
-                >
-                    <X size={14} />
-                </button>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all">
                     <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -451,11 +435,28 @@ const SharedListDetail = ({ session }) => {
             .eq('id', itemId);
 
         if (!error) {
-            setItems((prev) => prev.filter((item) => item.id !== itemId));
+            setItems((prev) => prev.filter((item) => item.dbId !== itemId));
             setToast({ isVisible: true, message: 'Item removed from shared list', type: 'success' });
         } else {
             console.error('Error deleting item:', error);
             setToast({ isVisible: true, message: 'Failed to remove item', type: 'error' });
+        }
+    };
+
+    const handleStatusChange = async (itemId, newStatus) => {
+        const { error } = await supabase
+            .from('shared_list_items')
+            .update({ status: newStatus })
+            .eq('id', itemId);
+
+        if (!error) {
+            setItems((prev) => prev.map((item) =>
+                item.dbId === itemId ? { ...item, status: newStatus } : item
+            ));
+            setToast({ isVisible: true, message: 'Status updated!', type: 'success' });
+        } else {
+            console.error('Error updating status:', error);
+            setToast({ isVisible: true, message: 'Failed to update status', type: 'error' });
         }
     };
 
@@ -592,6 +593,11 @@ const SharedListDetail = ({ session }) => {
                 onAdd={handleAddToLibrary}
                 mediaType={mediaType}
                 session={session}
+                showStatusPicker={true}
+                currentStatus={selectedItem?.status || 'later'}
+                onStatusChange={(newStatus) => selectedItem && handleStatusChange(selectedItem.dbId, newStatus)}
+                statusCategories={getLibraryCategories(mediaType)}
+                onDelete={selectedItem ? () => handleDeleteItem(selectedItem.dbId) : null}
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -716,7 +722,11 @@ const SharedListDetail = ({ session }) => {
                     {sortedItems.length > 0 ? (
                         <div className="flex gap-4 flex-wrap">
                             {sortedItems.map((item) => (
-                                <LibraryCard key={item.id} item={item} onClick={handleCardClick} onDelete={handleDeleteItem} />
+                                <LibraryCard
+                                    key={item.id}
+                                    item={item}
+                                    onClick={handleCardClick}
+                                />
                             ))}
                         </div>
                     ) : (
