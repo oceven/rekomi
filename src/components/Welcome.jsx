@@ -21,14 +21,11 @@ const Welcome = () => {
             <div className="absolute inset-0 bg-black/50" />
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col justify-center items-start min-h-screen px-4">
+            <div className="relative z-10 flex flex-col justify-center items-start min-h-screen px-4 sm:px-6 md:px-8 py-8">
                 {/* Content Container */}
                 <div
-                    className="flex flex-col justify-between p-8"
+                    className="flex flex-col justify-between p-6 sm:p-8 md:p-10 w-full max-w-6xl min-h-[600px] md:min-h-[744px]"
                     style={{
-                        height: '744px',
-                        flexShrink: 0,
-                        alignSelf: 'stretch',
                         borderRadius: '24px',
                         background: 'rgba(255, 255, 255, 0.05)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -37,23 +34,21 @@ const Welcome = () => {
                 >
                     {/* Logo/Brand */}
                     <div>
-                        <h1 className="text-2xl font-bold">
+                        <h1 className="text-xl sm:text-2xl font-bold">
                             reko<span className="underline decoration-blue-500 underline-offset-4">mi</span>
                         </h1>
                     </div>
 
                     {/* Main Content */}
-                    <div className="max-w-4xl space-y-8 ml-12">
+                    <div className="max-w-4xl space-y-6 sm:space-y-8 ml-0 sm:ml-8 md:ml-12">
                         {/* Hero Text */}
                         <div className="space-y-4 text-left">
                             <h2
+                                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
                                 style={{
                                     color: '#FFF',
                                     fontFamily: 'Inter',
-                                    fontSize: '64px',
-                                    fontWeight: 700,
-                                    lineHeight: '67.2px',
-                                    letterSpacing: '-1.6px',
+                                    letterSpacing: '-0.02em',
                                     textShadow: '0 2px 8px rgba(0,0,0,0.8)'
                                 }}
                             >
@@ -64,13 +59,11 @@ const Welcome = () => {
                             </h2>
 
                             <p
-                                className="max-w-2xl"
+                                className="max-w-2xl text-sm sm:text-base leading-relaxed"
                                 style={{
                                     color: '#C1CEEE',
                                     fontFamily: 'Inter',
-                                    fontSize: '15px',
                                     fontWeight: 500,
-                                    lineHeight: '24.75px',
                                     textShadow: '0 1px 4px rgba(0,0,0,0.8)'
                                 }}
                             >
@@ -87,11 +80,9 @@ const Welcome = () => {
                                 onClick={() => navigate('/signup')}
                                 onMouseEnter={() => setIsHovered(true)}
                                 onMouseLeave={() => setIsHovered(false)}
-                                className="font-bold text-lg transition-all hover:scale-105"
+                                className="font-bold text-base sm:text-lg transition-all hover:scale-105 h-14 sm:h-16 md:h-[75px] px-8 sm:px-12 md:px-16"
                                 style={{
                                     display: 'inline-flex',
-                                    height: '75px',
-                                    padding: '0 21px 0 20px',
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     borderRadius: '30px',
@@ -105,7 +96,7 @@ const Welcome = () => {
                         </div>
 
                         {/* Secondary CTA */}
-                        <p className="text-slate-500 text-sm text-left">
+                        <p className="text-slate-500 text-xs sm:text-sm text-left">
                             Already have an account?{' '}
                             <button
                                 onClick={() => navigate('/login')}
