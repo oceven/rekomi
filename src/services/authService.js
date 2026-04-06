@@ -56,21 +56,26 @@ export const signUpUser = async (email, password, username) => {
   
     // Check if profile exists, create if missing (handles email confirmation flow)
     if (data.user) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileCheckError } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
   
-      if (!profile) {
+      console.log("Profile check result:", profile, "Error:", profileCheckError);
+  
+      if (!profile && !profileCheckError) {
         // Profile doesn't exist, create it from metadata
         console.log("User metadata:", data.user.user_metadata);
         const username = data.user.user_metadata?.username || data.user.email.split('@')[0];
         console.log("Creating profile with username:", username);
         
-        const { error: createError } = await supabase
+        const { data: newProfile, error: createError } = await supabase
           .from('profiles')
-          .insert([{ id: data.user.id, username: username }]);
+          .insert([{ id: data.user.id, username: username }])
+          .select();
+  
+        console.log("Profile creation result:", newProfile, "Error:", createError);
   
         if (createError) {
           console.error("Failed to create profile on login:", createError);
