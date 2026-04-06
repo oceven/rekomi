@@ -108,6 +108,7 @@ const Sidebar = ({ isOpen = true, onClose }) => {
             {/* Blue accent line */}
             <div className="absolute right-0 top-0 w-0.5 h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
         </aside>
+        </>
     );
 };
 
