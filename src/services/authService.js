@@ -16,24 +16,29 @@ export const signUpUser = async (email, password, username) => {
       return { error: "Username is already taken!" };
     }
   
-    // 2. AUTHENTICATION
+    // 2. AUTHENTICATION - Store username in metadata
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username: cleanUsername
+        }
+      }
     });
   
     if (authError) return { error: authError.message };
   
-    // 3. Add new user to profiles table
+    // 3. Try to add user to profiles table
+    // This might fail if email confirmation is required
     const { error: profileError } = await supabase
       .from('profiles')
       .insert([{ id: data.user.id, username: cleanUsername }]);
   
     if (profileError) {
-      // If this fails, the user exists in Auth but not Profiles.
-      // We should alert the user.
-      console.error("Profile sync failed:", profileError.message);
-      return { error: "A confirmation email has been sent. Please check your inbox to verify your account." };
+      console.error("Profile creation deferred (likely pending email confirmation):", profileError.message);
+      // Return success with confirmation message
+      return { data, error: null, needsConfirmation: true };
     }
   
     return { data, error: null };
@@ -48,5 +53,27 @@ export const signUpUser = async (email, password, username) => {
     });
   
     if (error) return { error: error.message };
+  
+    // Check if profile exists, create if missing (handles email confirmation flow)
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .single();
+  
+      if (!profile) {
+        // Profile doesn't exist, create it from metadata
+        const username = data.user.user_metadata?.username || data.user.email.split('@')[0];
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert([{ id: data.user.id, username: username }]);
+  
+        if (createError) {
+          console.error("Failed to create profile on login:", createError);
+        }
+      }
+    }
+  
     return { data, error: null };
   };

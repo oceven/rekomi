@@ -16,10 +16,12 @@ const SignUp = () => {
         setLoading(true);
         setMessage('');
 
-        const { data, error } = await signUpUser(email, password, username);
+        const { data, error, needsConfirmation } = await signUpUser(email, password, username);
 
         if (error) {
             setMessage(error);
+        } else if (needsConfirmation) {
+            setMessage('A confirmation email has been sent. Please check your inbox to verify your account.');
         } else {
             setMessage('Success!');
             // Redirect to dashboard after successful signup
