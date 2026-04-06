@@ -96,6 +96,7 @@ const Dashboard = ({ session }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedMediaType, setSelectedMediaType] = useState('movie');
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { username, avatar_url } = useUserProfile(session);
 
     // Track if initial load has happened
@@ -217,7 +218,10 @@ const Dashboard = ({ session }) => {
 
     return (
         <div className="flex h-screen bg-slate-950 text-white font-sans overflow-hidden">
-            <Sidebar />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
 
 
             <Toast
@@ -244,9 +248,10 @@ const Dashboard = ({ session }) => {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     searchPlaceholder="Search movies, anime, books..."
+                    onMenuClick={() => setIsSidebarOpen(true)}
                 />
 
-                <main className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide">
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 scrollbar-hide">
                     <div className="mb-8">
                         <h2 className="text-4xl font-bold text-white mb-1">Explore</h2>
                         <p className="text-slate-500">Add your all-time favorites to your list</p>

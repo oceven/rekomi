@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Library, Users, Layers, LogOut } from 'lucide-react';
+import { Home, Library, Users, Layers, LogOut, X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen = true, onClose }) => {
     const location = useLocation();
     const isActive = (path) => location.pathname === path;
 
@@ -10,12 +10,44 @@ const Sidebar = () => {
         await supabase.auth.signOut();
     };
 
+    const handleNavigation = () => {
+        // Close sidebar on mobile after navigation
+        if (onClose) onClose();
+    };
+
     return (
-        <aside className="w-16 border-r border-slate-800 flex flex-col items-center py-6 bg-slate-950 h-screen sticky top-0 z-50">
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && onClose && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={onClose}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`
+                w-16 border-r border-slate-800 flex flex-col items-center py-6 bg-slate-950 h-screen sticky top-0 z-50
+                md:block
+                ${onClose ? 'fixed md:relative' : ''}
+                ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                transition-transform duration-300 ease-in-out
+            `}>
+            {/* Close button for mobile */}
+            {onClose && (
+                <button
+                    onClick={onClose}
+                    className="md:hidden p-3 text-slate-400 hover:text-white self-end"
+                >
+                    <X size={20} />
+                </button>
+            )}
+
             {/* Navigation Icons */}
             <nav className="flex-1 flex flex-col items-center gap-4 mt-4">
                 <Link
                     to="/"
+                    onClick={handleNavigation}
                     className={`p-3 rounded-xl transition-colors ${isActive('/')
                             ? 'bg-slate-800 text-white shadow-lg shadow-blue-500/10'
                             : 'text-slate-500 hover:text-white hover:bg-slate-800/50'
@@ -27,6 +59,7 @@ const Sidebar = () => {
 
                 <Link
                     to="/library"
+                    onClick={handleNavigation}
                     className={`p-3 rounded-xl transition-colors ${isActive('/library')
                             ? 'bg-slate-800 text-white shadow-lg shadow-blue-500/10'
                             : 'text-slate-500 hover:text-white hover:bg-slate-800/50'
@@ -39,6 +72,7 @@ const Sidebar = () => {
                 {/* Shared Lists Icon - Using Layers to distinguish from Friends */}
                 <Link
                     to="/shared-lists"
+                    onClick={handleNavigation}
                     className={`p-3 rounded-xl transition-colors ${isActive('/shared-lists')
                             ? 'bg-slate-800 text-white shadow-lg shadow-blue-500/10'
                             : 'text-slate-500 hover:text-white hover:bg-slate-800/50'
@@ -51,6 +85,7 @@ const Sidebar = () => {
                 {/* Friends Icon - Keeping your existing Users icon */}
                 <Link
                     to="/friends"
+                    onClick={handleNavigation}
                     className={`p-3 rounded-xl transition-colors ${isActive('/friends')
                             ? 'bg-slate-800 text-white shadow-lg shadow-blue-500/10'
                             : 'text-slate-500 hover:text-white hover:bg-slate-800/50'

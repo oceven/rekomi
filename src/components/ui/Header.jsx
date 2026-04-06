@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { Search, Users, Bell, LogOut } from 'lucide-react';
+import { Search, Users, Bell, LogOut, Menu } from 'lucide-react';
 
 const Header = ({
   username,
@@ -11,7 +11,8 @@ const Header = ({
   showSearch = true,
   setSearchQuery,
   searchQuery,
-  searchPlaceholder = 'Search...'
+  searchPlaceholder = 'Search...',
+  onMenuClick
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,23 +71,33 @@ const Header = ({
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-20">
+    <header className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3 md:py-4 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-20 gap-2 md:gap-4">
+      {/* Mobile Menu Button */}
+      {onMenuClick && (
+        <button
+          onClick={onMenuClick}
+          className="md:hidden p-2 text-slate-400 hover:text-white transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+      )}
+
       {/* Logo with blue underline only on "mi" */}
       <h1
         onClick={() => navigate('/')}
-        className="text-xl font-bold text-white tracking-tight cursor-pointer hover:text-blue-400 transition-colors"
+        className="text-lg sm:text-xl font-bold text-white tracking-tight cursor-pointer hover:text-blue-400 transition-colors flex-shrink-0"
       >
         reko<span className="border-b-2 border-blue-500 pb-0.5">mi</span>
       </h1>
 
-      <div className="flex-1 max-w-xl mx-8">
+      <div className="flex-1 max-w-xl mx-2 sm:mx-4 md:mx-8">
         {children || (showSearch && setSearchQuery && (
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
             <input
               type="text"
               placeholder={searchPlaceholder}
-              className="w-full bg-slate-800 border border-slate-700 rounded-full py-2.5 pl-11 pr-5 text-sm outline-none focus:border-blue-500 transition-all text-white placeholder-slate-500"
+              className="w-full bg-slate-800 border border-slate-700 rounded-full py-2 sm:py-2.5 pl-9 sm:pl-11 pr-3 sm:pr-5 text-xs sm:text-sm outline-none focus:border-blue-500 transition-all text-white placeholder-slate-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -94,12 +105,12 @@ const Header = ({
         ))}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
         <Link
           to="/friends"
-          className={`p-2 transition-colors ${location.pathname === '/friends' ? 'text-blue-500' : 'text-slate-400 hover:text-white'}`}
+          className={`hidden sm:block p-2 transition-colors ${location.pathname === '/friends' ? 'text-blue-500' : 'text-slate-400 hover:text-white'}`}
         >
-          <Users size={20} />
+          <Users size={18} />
         </Link>
 
         {/* Bell Button - Navigates to page, no dropdown */}
@@ -108,7 +119,7 @@ const Header = ({
           className={`p-2 transition-colors relative ${location.pathname === '/notifications' ? 'text-blue-500' : 'text-slate-400 hover:text-white'
             }`}
         >
-          <Bell size={20} />
+          <Bell size={18} />
           {hasUnread && (
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse" />
           )}
@@ -116,7 +127,7 @@ const Header = ({
 
         <Link
           to="/profile"
-          className="w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all flex-shrink-0"
         >
           {avatar_url ? (
             <img
@@ -125,7 +136,7 @@ const Header = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white">
+            <div className="w-full h-full bg-blue-600 flex items-center justify-center text-xs sm:text-sm font-bold text-white">
               {username ? username.charAt(0).toUpperCase() : 'U'}
             </div>
           )}
@@ -133,9 +144,9 @@ const Header = ({
 
         <button
           onClick={handleLogout}
-          className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+          className="hidden sm:block p-2 text-slate-400 hover:text-red-400 transition-colors"
         >
-          <LogOut size={20} />
+          <LogOut size={18} />
         </button>
       </div>
     </header>
