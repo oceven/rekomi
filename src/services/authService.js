@@ -33,7 +33,7 @@ export const signUpUser = async (email, password, username) => {
       // If this fails, the user exists in Auth but not Profiles.
       // We should alert the user.
       console.error("Profile sync failed:", profileError.message);
-      return { error: "Account created, but profile setup failed. Please contact support." };
+      return { error: "A confirmation email has been sent. Please check your inbox to verify your account." };
     }
   
     return { data, error: null };

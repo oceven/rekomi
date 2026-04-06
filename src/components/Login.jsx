@@ -18,9 +18,9 @@ const Login = () => {
     const { data, error } = await loginUser(email, password);
 
     if (error) {
-      setMessage(`❌ ${error}`);
+      setMessage(error);
     } else {
-      setMessage('✅ Logged in successfully!');
+      setMessage('Logged in successfully!');
       // Redirect to dashboard after successful login
       setTimeout(() => navigate('/dashboard'), 500);
     }
@@ -74,7 +74,7 @@ const Login = () => {
         </form>
 
         {message && (
-          <p className={`mt-4 text-center text-sm ${message.includes('❌') ? 'text-red-400' : 'text-green-400'}`}>
+          <p className={`mt-4 text-center text-sm ${message.includes('successfully') ? 'text-green-400' : 'text-red-400'}`}>
             {message}
           </p>
         )}

@@ -19,9 +19,9 @@ const SignUp = () => {
         const { data, error } = await signUpUser(email, password, username);
 
         if (error) {
-            setMessage(`❌ Error: ${error}`);
+            setMessage(error);
         } else {
-            setMessage('✅ Success! ');
+            setMessage('Success!');
             // Redirect to dashboard after successful signup
             setTimeout(() => navigate('/dashboard'), 500);
         }
@@ -90,7 +90,9 @@ const SignUp = () => {
                 </form>
 
                 {message && (
-                    <p className={`mt-4 text-center text-sm ${message.includes('❌') ? 'text-red-400' : 'text-green-400'}`}>
+                    <p className={`mt-4 text-center text-sm ${
+                        message.includes('Success') ? 'text-green-400' : 'text-blue-400'
+                    }`}>
                         {message}
                     </p>
                 )}
