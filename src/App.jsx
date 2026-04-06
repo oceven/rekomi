@@ -40,32 +40,26 @@ function App() {
         </div>
       }>
         <Routes>
-          {/* Public route for email confirmation */}
+          {/* Public route for email confirmation - accessible regardless of auth state */}
           <Route path="/confirm-email" element={<ConfirmEmail />} />
           
-          {!session ? (
-            // --- UNAUTHENTICATED ROUTES ---
-            <>
-              <Route path="/" element={<Welcome />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </>
-          ) : (
-            // --- AUTHENTICATED ROUTES ---
-            <>
-              <Route path="/" element={<Dashboard session={session} />} />
-              <Route path="/dashboard" element={<Dashboard session={session} />} />
-              <Route path="/library" element={<Library session={session} />} />
-              <Route path="/friends" element={<Friends session={session} />} />
-              <Route path="/profile" element={<Profile session={session} />} />
-              <Route path="/notifications" element={<Notifications session={session} />} />
-              <Route path="/profile/:userId" element={<Profile session={session} />} />
-              <Route path="/shared-lists" element={<SharedLists session={session} />} />
-              <Route path="/shared-lists/:listId" element={<SharedListDetail session={session} />} />
-              <Route path="*" element={<Navigate to="/dashboard" />} />
-            </>
-          )}
+          {/* Unauthenticated routes */}
+          <Route path="/" element={!session ? <Welcome /> : <Navigate to="/dashboard" />} />
+          <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" />} />
+          <Route path="/signup" element={!session ? <SignUp /> : <Navigate to="/dashboard" />} />
+          
+          {/* Authenticated routes */}
+          <Route path="/dashboard" element={session ? <Dashboard session={session} /> : <Navigate to="/login" />} />
+          <Route path="/library" element={session ? <Library session={session} /> : <Navigate to="/login" />} />
+          <Route path="/friends" element={session ? <Friends session={session} /> : <Navigate to="/login" />} />
+          <Route path="/profile" element={session ? <Profile session={session} /> : <Navigate to="/login" />} />
+          <Route path="/notifications" element={session ? <Notifications session={session} /> : <Navigate to="/login" />} />
+          <Route path="/profile/:userId" element={session ? <Profile session={session} /> : <Navigate to="/login" />} />
+          <Route path="/shared-lists" element={session ? <SharedLists session={session} /> : <Navigate to="/login" />} />
+          <Route path="/shared-lists/:listId" element={session ? <SharedListDetail session={session} /> : <Navigate to="/login" />} />
+          
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} />} />
         </Routes>
       </Suspense>
     </Router>
