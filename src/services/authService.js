@@ -23,7 +23,8 @@ export const signUpUser = async (email, password, username) => {
       options: {
         data: {
           username: cleanUsername
-        }
+        },
+        emailRedirectTo: `${window.location.origin}/confirm-email`
       }
     });
   
