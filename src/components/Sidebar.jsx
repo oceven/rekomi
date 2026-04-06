@@ -94,16 +94,16 @@ const Sidebar = ({ isOpen = true, onClose }) => {
                 >
                     <Users size={22} />
                 </Link>
-            </nav>
 
-            {/* Logout Button */}
-            <button
-                onClick={handleLogout}
-                className="p-3 rounded-xl text-slate-500 hover:text-red-500 hover:bg-red-500/10 transition-colors mb-4"
-                title="Logout"
-            >
-                <LogOut size={22} />
-            </button>
+                {/* Logout Button */}
+                <button
+                    onClick={handleLogout}
+                    className="p-3 rounded-xl text-slate-500 hover:text-red-500 hover:bg-red-500/10 transition-colors mt-2"
+                    title="Logout"
+                >
+                    <LogOut size={22} />
+                </button>
+            </nav>
 
             {/* Blue accent line */}
             <div className="absolute right-0 top-0 w-0.5 h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
