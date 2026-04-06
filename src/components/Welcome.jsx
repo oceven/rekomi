@@ -21,10 +21,10 @@ const Welcome = () => {
             <div className="absolute inset-0 bg-black/50" />
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col justify-center items-start min-h-screen px-4 sm:px-6 md:px-8 py-8">
+            <div className="relative z-10 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 md:px-8 py-8">
                 {/* Content Container */}
                 <div
-                    className="flex flex-col justify-between p-6 sm:p-8 md:p-10 w-full max-w-6xl min-h-[600px] md:min-h-[744px]"
+                    className="flex flex-col justify-between p-6 sm:p-8 md:p-10 w-full max-w-5xl min-h-[600px] md:min-h-[744px]"
                     style={{
                         borderRadius: '24px',
                         background: 'rgba(255, 255, 255, 0.05)',
