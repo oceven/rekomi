@@ -64,7 +64,10 @@ export const signUpUser = async (email, password, username) => {
   
       if (!profile) {
         // Profile doesn't exist, create it from metadata
+        console.log("User metadata:", data.user.user_metadata);
         const username = data.user.user_metadata?.username || data.user.email.split('@')[0];
+        console.log("Creating profile with username:", username);
+        
         const { error: createError } = await supabase
           .from('profiles')
           .insert([{ id: data.user.id, username: username }]);
