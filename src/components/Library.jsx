@@ -147,7 +147,7 @@ const LibraryCard = ({ item, onClick }) => {
 
     return (
         <div
-            className="flex-shrink-0 w-36 cursor-pointer group"
+            className="flex-shrink-0 w-28 sm:w-32 md:w-36 cursor-pointer group"
             onClick={() => onClick(item)}
         >
             <div className="relative overflow-hidden rounded-2xl border-2 border-transparent group-hover:border-blue-500 transition-all">
@@ -195,6 +195,7 @@ const Library = ({ session }) => {
     const [toast, setToast] = useState({ isVisible: false, message: '' });
     const [selectedItem, setSelectedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { username, avatar_url } = useUserProfile(session);
 
     const fetchItems = async () => {
@@ -286,7 +287,10 @@ const Library = ({ session }) => {
 
     return (
         <div className="flex h-screen bg-slate-950 text-white font-sans overflow-hidden">
-            <Sidebar />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
 
             <Toast
                 message={toast.message}
@@ -305,7 +309,12 @@ const Library = ({ session }) => {
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header username={username} session={session} avatar_url={avatar_url}>
+                <Header 
+                    username={username} 
+                    session={session} 
+                    avatar_url={avatar_url}
+                    onMenuClick={() => setIsSidebarOpen(true)}
+                >
                     <SearchDropdown
                         session={session}
                         mediaType={mediaType}
@@ -313,15 +322,15 @@ const Library = ({ session }) => {
                     />
                 </Header>
 
-                <main className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide">
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 scrollbar-hide">
                     {/* Page Title */}
-                    <div className="mb-6">
-                        <h2 className="text-4xl font-bold text-white mb-1">{pageTitles[mediaType].title}</h2>
-                        <p className="text-slate-500">{pageTitles[mediaType].subtitle}</p>
+                    <div className="mb-4 sm:mb-6">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">{pageTitles[mediaType].title}</h2>
+                        <p className="text-xs sm:text-sm text-slate-500">{pageTitles[mediaType].subtitle}</p>
                     </div>
 
                     {/* Media Type Tabs */}
-                    <div className="flex gap-2 mb-6">
+                    <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 scrollbar-hide">
                         {MEDIA_TYPES.map((type) => {
                             const Icon = type.icon;
                             return (
@@ -331,26 +340,26 @@ const Library = ({ session }) => {
                                         setMediaType(type.id);
                                         setStatusFilter('all');
                                     }}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${mediaType === type.id
+                                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${mediaType === type.id
                                             ? 'bg-blue-600 text-white'
                                             : 'bg-slate-800 text-slate-400 hover:text-white'
                                         }`}
                                 >
-                                    <Icon size={16} />
-                                    {type.label}
+                                    <Icon size={14} className="sm:w-4 sm:h-4" />
+                                    <span className="whitespace-nowrap">{type.label}</span>
                                 </button>
                             );
                         })}
                     </div>
 
                     {/* Status Filters and Sort */}
-                    <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-                        <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
+                        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
                             {getLibraryCategories(mediaType).map((category) => (
                                 <button
                                     key={category.id}
                                     onClick={() => setStatusFilter(category.id)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${statusFilter === category.id
+                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${statusFilter === category.id
                                             ? 'bg-slate-700 text-white'
                                             : 'bg-slate-800/50 text-slate-400 hover:text-white'
                                         }`}
@@ -360,12 +369,12 @@ const Library = ({ session }) => {
                             ))}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <ArrowUpDown size={16} className="text-slate-500" />
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <ArrowUpDown size={14} className="text-slate-500 sm:w-4 sm:h-4" />
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="bg-slate-800 border border-slate-700 py-2 px-3 rounded-lg text-sm outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                                className="bg-slate-800 border border-slate-700 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm outline-none focus:border-blue-500 transition-colors cursor-pointer"
                             >
                                 {SORT_OPTIONS.map((option) => (
                                     <option key={option.id} value={option.id}>{option.label}</option>

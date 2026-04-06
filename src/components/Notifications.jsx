@@ -30,6 +30,7 @@ const Notifications = ({ session }) => {
     const { username, avatar_url } = useUserProfile(session);
     const [notifs, setNotifs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // MATCHING DASHBOARD.JSX STATES
     const [selectedItem, setSelectedItem] = useState(null);
@@ -173,7 +174,10 @@ const Notifications = ({ session }) => {
 
     return (
         <div className="flex h-screen bg-slate-950 text-white overflow-hidden font-sans">
-            <Sidebar />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
 
             <Toast
                 message={toast.message}
@@ -183,23 +187,24 @@ const Notifications = ({ session }) => {
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header username={username} session={session} avatar_url={avatar_url} showSearch={false} />
+                <Header username={username} session={session} avatar_url={avatar_url} showSearch={false} onMenuClick={() => setIsSidebarOpen(true)} />
 
-                <main className="flex-1 overflow-y-auto px-8 py-10 scrollbar-hide">
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 scrollbar-hide">
                     <div className="max-w-3xl mx-auto">
-                        <div className="flex items-center justify-between mb-8">
-                            <h1 className="text-3xl font-bold">Inbox</h1>
-                            <button onClick={markAllRead} className="text-xs font-bold uppercase text-slate-500 hover:text-blue-400 flex items-center gap-2 transition-colors">
-                                <CheckCheck size={16} /> Mark all read
+                        <div className="flex items-center justify-between mb-6 sm:mb-8">
+                            <h1 className="text-2xl sm:text-3xl font-bold">Inbox</h1>
+                            <button onClick={markAllRead} className="text-[10px] sm:text-xs font-bold uppercase text-slate-500 hover:text-blue-400 flex items-center gap-1.5 sm:gap-2 transition-colors">
+                                <CheckCheck size={14} className="sm:w-4 sm:h-4" /> 
+                                <span className="hidden sm:inline">Mark all read</span>
                             </button>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2.5 sm:space-y-3">
                             {loading ? (
-                                <p className="text-slate-500">Loading your recommendations...</p>
+                                <p className="text-sm sm:text-base text-slate-500">Loading your recommendations...</p>
                             ) : notifs.length === 0 ? (
-                                <div className="text-center py-20 bg-slate-900/30 border-2 border-dashed border-slate-900/50 rounded-3xl">
-                                    <p className="text-slate-500 font-medium">No recommendations yet.</p>
+                                <div className="text-center py-12 sm:py-16 md:py-20 bg-slate-900/30 border-2 border-dashed border-slate-900/50 rounded-2xl sm:rounded-3xl">
+                                    <p className="text-sm sm:text-base text-slate-500 font-medium">No recommendations yet.</p>
                                 </div>
                             ) : (
                                 notifs.map((n) => {
@@ -214,45 +219,45 @@ const Notifications = ({ session }) => {
                                         <div
                                             key={n.id}
                                             onClick={() => handleNotifClick(n)}
-                                            className={`group p-4 rounded-2xl border flex items-center gap-4 transition-all cursor-pointer ${n.is_read ? 'bg-slate-900/40 border-slate-900 opacity-60' : 'bg-slate-900 border-slate-800 shadow-lg shadow-blue-500/5'
+                                            className={`group p-3 sm:p-4 rounded-xl sm:rounded-2xl border flex items-center gap-3 sm:gap-4 transition-all cursor-pointer ${n.is_read ? 'bg-slate-900/40 border-slate-900 opacity-60' : 'bg-slate-900 border-slate-800 shadow-lg shadow-blue-500/5'
                                                 }`}
                                         >
-                                            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center font-bold overflow-hidden">
+                                            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-blue-600 flex items-center justify-center font-bold overflow-hidden flex-shrink-0">
                                                 {n.sender?.avatar_url ? (
                                                     <img src={n.sender.avatar_url} alt={n.sender.username} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <span>{n.sender?.username?.[0].toUpperCase()}</span>
+                                                    <span className="text-sm sm:text-base">{n.sender?.username?.[0].toUpperCase()}</span>
                                                 )}
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 {n.type === 'list_invite' ? (
                                                     <>
-                                                        <p className="text-slate-400 text-xs">
+                                                        <p className="text-slate-400 text-[11px] sm:text-xs">
                                                             <span className="font-bold text-white">@{n.sender?.username}</span> invited you to a shared list
                                                             <span className="text-slate-600 ml-1">• {getTimeAgo(n.created_at)}</span>
                                                         </p>
-                                                        <h3 className="font-bold text-white text-lg">{n.message}</h3>
+                                                        <h3 className="font-bold text-white text-sm sm:text-base md:text-lg truncate">{n.message}</h3>
                                                     </>
                                                 ) : n.type === 'list_item_added' ? (
                                                     <>
-                                                        <p className="text-slate-400 text-xs">
+                                                        <p className="text-slate-400 text-[11px] sm:text-xs">
                                                             <span className="font-bold text-white">@{n.sender?.username}</span> added to shared list
                                                             <span className="text-slate-600 ml-1">• {getTimeAgo(n.created_at)}</span>
                                                         </p>
-                                                        <h3 className="font-bold text-white text-lg">{n.message}</h3>
+                                                        <h3 className="font-bold text-white text-sm sm:text-base md:text-lg truncate">{n.message}</h3>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <p className="text-slate-400 text-xs">
+                                                        <p className="text-slate-400 text-[11px] sm:text-xs">
                                                             <span className="font-bold text-white">@{n.sender?.username}</span> recommended a {n.data?.media_type}
                                                             <span className="text-slate-600 ml-1">• {getTimeAgo(n.created_at)}</span>
                                                         </p>
-                                                        <h3 className="font-bold text-white text-lg">{n.data?.title}</h3>
+                                                        <h3 className="font-bold text-white text-sm sm:text-base md:text-lg truncate">{n.data?.title}</h3>
                                                     </>
                                                 )}
                                             </div>
                                             {posterUrl && (
-                                                <img src={posterUrl} alt="" className="w-10 h-14 object-cover rounded-lg border border-slate-800" />
+                                                <img src={posterUrl} alt="" className="w-8 h-12 sm:w-10 sm:h-14 object-cover rounded-lg border border-slate-800 flex-shrink-0" />
                                             )}
                                         </div>
                                     );

@@ -27,17 +27,17 @@ const Sidebar = ({ isOpen = true, onClose }) => {
 
             {/* Sidebar */}
             <aside className={`
-                w-16 border-r border-slate-800 flex flex-col items-center py-6 bg-slate-950 h-screen sticky top-0 z-50
-                md:block
-                ${onClose ? 'fixed md:relative' : ''}
+                w-16 border-r border-slate-800 flex flex-col items-center py-6 bg-slate-950 h-screen z-50
+                fixed md:sticky md:block
                 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 transition-transform duration-300 ease-in-out
+                top-0 left-0
             `}>
             {/* Close button for mobile */}
             {onClose && (
                 <button
                     onClick={onClose}
-                    className="md:hidden p-3 text-slate-400 hover:text-white self-end"
+                    className="md:hidden p-3 text-slate-400 hover:text-white w-full flex justify-center"
                 >
                     <X size={20} />
                 </button>

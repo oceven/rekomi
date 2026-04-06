@@ -12,6 +12,7 @@ const SharedLists = ({ session }) => {
     const { username, avatar_url } = useUserProfile(session);
     const [lists, setLists] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Popup States
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -145,7 +146,10 @@ const SharedLists = ({ session }) => {
 
     return (
         <div className="flex h-screen bg-slate-950 text-white overflow-hidden font-sans">
-            <Sidebar />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
             <Toast
                 isVisible={toast.isVisible}
                 message={toast.message}
@@ -154,57 +158,59 @@ const SharedLists = ({ session }) => {
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header username={username} avatar_url={avatar_url} session={session} />
+                <Header username={username} avatar_url={avatar_url} session={session} onMenuClick={() => setIsSidebarOpen(true)} />
 
-                <main className="flex-1 overflow-y-auto px-8 py-10">
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
                     <div className="max-w-6xl mx-auto">
-                        <div className="flex justify-between items-end mb-10">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 md:mb-10 gap-4">
                             <div>
-                                <h2 className="text-4xl font-bold mb-2">Shared Lists</h2>
-                                <p className="text-slate-500">Collaborate on collections with your circle</p>
+                                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">Shared Lists</h2>
+                                <p className="text-xs sm:text-sm text-slate-500">Collaborate on collections with your circle</p>
                             </div>
                             <button
                                 onClick={() => setIsPopupOpen(true)}
-                                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+                                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 sm:px-5 sm:py-3 md:px-6 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20 flex-shrink-0"
                             >
-                                <Plus size={20} /> Create Shared List
+                                <Plus size={18} className="sm:w-5 sm:h-5" /> 
+                                <span className="hidden sm:inline">Create Shared List</span>
+                                <span className="sm:hidden">Create</span>
                             </button>
                         </div>
 
                         {/* List Display */}
                         {loading ? (
-                            <div className="text-center py-20 text-slate-500">Loading your shared lists...</div>
+                            <div className="text-center py-12 sm:py-16 md:py-20 text-sm sm:text-base text-slate-500">Loading your shared lists...</div>
                         ) : lists.length === 0 ? (
-                            <div className="text-center py-20 bg-slate-900/30 border-2 border-dashed border-slate-800 rounded-3xl">
-                                <Layers size={48} className="mx-auto mb-4 text-slate-700" />
-                                <p className="text-slate-500 font-medium">No shared lists yet</p>
-                                <p className="text-slate-600 text-sm mt-2">Create one to start collaborating with friends!</p>
+                            <div className="text-center py-12 sm:py-16 md:py-20 bg-slate-900/30 border-2 border-dashed border-slate-800 rounded-2xl sm:rounded-3xl">
+                                <Layers size={36} className="sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-slate-700" />
+                                <p className="text-sm sm:text-base text-slate-500 font-medium">No shared lists yet</p>
+                                <p className="text-xs sm:text-sm text-slate-600 mt-1 sm:mt-2">Create one to start collaborating with friends!</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
                                 {lists.map(list => (
                                     <div
                                         key={list.id}
                                         onClick={() => navigate(`/shared-lists/${list.id}`)}
-                                        className="relative bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-8 rounded-3xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-pointer group overflow-hidden"
+                                        className="relative bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all cursor-pointer group overflow-hidden"
                                     >
                                         {/* Background gradient effect */}
                                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                         {/* Content */}
                                         <div className="relative">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${list.creator_id === session.user.id
+                                            <div className="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
+                                                <span className={`text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full ${list.creator_id === session.user.id
                                                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                                                         : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                                                     }`}>
                                                     {list.creator_id === session.user.id ? 'OWNER' : 'MEMBER'}
                                                 </span>
-                                                <ArrowRight className="text-slate-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" size={20} />
+                                                <ArrowRight className="text-slate-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" size={18} className="sm:w-5 sm:h-5" />
                                             </div>
 
-                                            <h3 className="text-2xl font-bold mb-2 group-hover:text-blue-400 transition-colors">{list.name}</h3>
-                                            <p className="text-slate-500 text-sm">Click to view details</p>
+                                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 group-hover:text-blue-400 transition-colors">{list.name}</h3>
+                                            <p className="text-slate-500 text-xs sm:text-sm">Click to view details</p>
                                         </div>
                                     </div>
                                 ))}
@@ -217,14 +223,14 @@ const SharedLists = ({ session }) => {
             {/* Create List Popup */}
             {isPopupOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-8 shadow-2xl">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-bold">New Shared List</h3>
+                    <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-2xl">
+                        <div className="flex justify-between items-center mb-5 sm:mb-6">
+                            <h3 className="text-xl sm:text-2xl font-bold">New Shared List</h3>
                             <button
                                 onClick={() => setIsPopupOpen(false)}
                                 className="text-slate-500 hover:text-white"
                             >
-                                <X />
+                                <X size={20} />
                             </button>
                         </div>
 

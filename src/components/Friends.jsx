@@ -12,6 +12,7 @@ const Friends = ({ session }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [socialList, setSocialList] = useState([]);
     const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' });
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { username, avatar_url } = useUserProfile(session);
 
     // Load social circle (friends and requests)
@@ -74,7 +75,10 @@ const Friends = ({ session }) => {
 
     return (
         <div className="flex h-screen bg-slate-950 text-white overflow-hidden font-sans">
-            <Sidebar />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
             <Toast
                 isVisible={toast.isVisible}
                 message={toast.message}
@@ -87,15 +91,16 @@ const Friends = ({ session }) => {
                     session={session}
                     avatar_url={avatar_url}
                     username={username}
+                    onMenuClick={() => setIsSidebarOpen(true)}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     searchPlaceholder="Search usernames..."
                 />
 
-                <main className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide animate-in fade-in duration-500">
-                    <div className="mb-8">
-                        <h2 className="text-4xl font-bold mb-1">Social</h2>
-                        <p className="text-slate-500">Connect with others and manage your circle</p>
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 scrollbar-hide animate-in fade-in duration-500">
+                    <div className="mb-6 sm:mb-8">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1">Social</h2>
+                        <p className="text-xs sm:text-sm text-slate-500">Connect with others and manage your circle</p>
                     </div>
 
                     {/* Discovery Section (Results from Search) */}

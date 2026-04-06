@@ -28,7 +28,7 @@ const MediaCard = ({ item, onAdd, onPreview }) => {
     return (
         <div
             onClick={() => onPreview(item)}
-            className="flex-shrink-0 w-36 cursor-pointer group"
+            className="flex-shrink-0 w-28 sm:w-32 md:w-36 cursor-pointer group"
         >
             <div className="relative overflow-hidden rounded-2xl border-2 border-transparent group-hover:border-blue-500 transition-all">
                 <img
@@ -63,13 +63,13 @@ const MediaCard = ({ item, onAdd, onPreview }) => {
 // ============================================
 const MediaSection = ({ title, subtitle, items, onAdd, onPreview }) => {
     return (
-        <section className="mb-10">
-            <div className="mb-4">
-                <h3 className="text-lg font-bold text-white">{title}</h3>
+        <section className="mb-8 sm:mb-10">
+            <div className="mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-white">{title}</h3>
                 <p className="text-xs text-slate-500">{subtitle}</p>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide">
                 {items.map((item) => (
                     <MediaCard key={item.id} item={item} onAdd={onAdd} onPreview={onPreview} />
                 ))}
@@ -251,10 +251,10 @@ const Dashboard = ({ session }) => {
                     onMenuClick={() => setIsSidebarOpen(true)}
                 />
 
-                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 scrollbar-hide">
-                    <div className="mb-8">
-                        <h2 className="text-4xl font-bold text-white mb-1">Explore</h2>
-                        <p className="text-slate-500">Add your all-time favorites to your list</p>
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 scrollbar-hide">
+                    <div className="mb-6 sm:mb-8">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">Explore</h2>
+                        <p className="text-xs sm:text-sm text-slate-500">Add your all-time favorites to your list</p>
                     </div>
 
                     <MediaSection

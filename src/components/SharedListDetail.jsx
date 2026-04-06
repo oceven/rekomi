@@ -243,7 +243,7 @@ const LibraryCard = ({ item, onClick }) => {
 
     return (
         <div
-            className="flex-shrink-0 w-36 cursor-pointer group"
+            className="flex-shrink-0 w-28 sm:w-32 md:w-36 cursor-pointer group"
             onClick={() => onClick(item)}
         >
             <div className="relative overflow-hidden rounded-2xl border-2 border-transparent group-hover:border-blue-500 transition-all">
@@ -292,6 +292,7 @@ const SharedListDetail = ({ session }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showMembersPopup, setShowMembersPopup] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showInvitePopup, setShowInvitePopup] = useState(false);
     const [myFriends, setMyFriends] = useState([]);
@@ -577,7 +578,10 @@ const SharedListDetail = ({ session }) => {
 
     return (
         <div className="flex h-screen bg-slate-950 text-white font-sans overflow-hidden">
-            <Sidebar />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setIsSidebarOpen(false)} 
+            />
 
             <Toast
                 message={toast.message}
@@ -601,7 +605,12 @@ const SharedListDetail = ({ session }) => {
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header username={username} session={session} avatar_url={avatar_url}>
+                <Header 
+                    username={username} 
+                    session={session} 
+                    avatar_url={avatar_url}
+                    onMenuClick={() => setIsSidebarOpen(true)}
+                >
                     <SearchDropdown
                         session={session}
                         mediaType={mediaType}
@@ -611,61 +620,61 @@ const SharedListDetail = ({ session }) => {
                     />
                 </Header>
 
-                <main className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide">
+                <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 scrollbar-hide">
                     {/* Back button and List header */}
-                    <div className="mb-6 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                    <div className="mb-4 sm:mb-5 md:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                             <button
                                 onClick={() => navigate('/shared-lists')}
-                                className="p-2 hover:bg-slate-800 rounded-xl transition-colors"
+                                className="p-2 hover:bg-slate-800 rounded-xl transition-colors flex-shrink-0"
                             >
-                                <ArrowLeft size={20} />
+                                <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
                             </button>
-                            <div>
-                                <h2 className="text-4xl font-bold text-white mb-1">{listInfo?.name}</h2>
-                                <p className="text-slate-500">Shared collection</p>
+                            <div className="min-w-0">
+                                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-0.5 sm:mb-1 truncate">{listInfo?.name}</h2>
+                                <p className="text-xs sm:text-sm text-slate-500">Shared collection</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
                             <button
                                 onClick={() => setShowMembersPopup(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors"
+                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 rounded-lg sm:rounded-xl transition-colors flex-shrink-0"
                             >
-                                <Users size={18} />
-                                <span className="text-sm font-medium">{members.length} {members.length === 1 ? 'Member' : 'Members'}</span>
+                                <Users size={16} className="sm:w-4.5 sm:h-4.5" />
+                                <span className="text-xs sm:text-sm font-medium">{members.length}</span>
                             </button>
 
                             <button
                                 onClick={handleOpenInvitePopup}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl transition-colors"
+                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-500 rounded-lg sm:rounded-xl transition-colors flex-shrink-0"
                             >
-                                <UserPlus size={18} />
-                                <span className="text-sm font-medium">Invite Friends</span>
+                                <UserPlus size={16} className="sm:w-4.5 sm:h-4.5" />
+                                <span className="text-xs sm:text-sm font-medium hidden sm:inline">Invite</span>
                             </button>
 
                             {isCreator ? (
                                 <button
                                     onClick={() => setShowDeleteConfirm(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-900/20 hover:bg-red-900/30 text-red-400 rounded-xl transition-colors"
+                                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-900/20 hover:bg-red-900/30 text-red-400 rounded-lg sm:rounded-xl transition-colors flex-shrink-0"
                                 >
-                                    <Trash2 size={18} />
-                                    <span className="text-sm font-medium">Delete List</span>
+                                    <Trash2 size={16} className="sm:w-4.5 sm:h-4.5" />
+                                    <span className="text-xs sm:text-sm font-medium hidden md:inline">Delete</span>
                                 </button>
                             ) : (
                                 <button
                                     onClick={handleLeaveList}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors"
+                                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 rounded-lg sm:rounded-xl transition-colors flex-shrink-0"
                                 >
-                                    <UserMinus size={18} />
-                                    <span className="text-sm font-medium">Leave List</span>
+                                    <UserMinus size={16} className="sm:w-4.5 sm:h-4.5" />
+                                    <span className="text-xs sm:text-sm font-medium hidden md:inline">Leave</span>
                                 </button>
                             )}
                         </div>
                     </div>
 
                     {/* Media Type Tabs */}
-                    <div className="flex gap-2 mb-6">
+                    <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-5 md:mb-6 overflow-x-auto pb-2 scrollbar-hide">
                         {MEDIA_TYPES.map((type) => {
                             const Icon = type.icon;
                             return (
@@ -675,26 +684,26 @@ const SharedListDetail = ({ session }) => {
                                         setMediaType(type.id);
                                         setStatusFilter('all');
                                     }}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${mediaType === type.id
+                                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${mediaType === type.id
                                             ? 'bg-blue-600 text-white'
                                             : 'bg-slate-800 text-slate-400 hover:text-white'
                                         }`}
                                 >
-                                    <Icon size={16} />
-                                    {type.label}
+                                    <Icon size={14} className="sm:w-4 sm:h-4" />
+                                    <span className="whitespace-nowrap">{type.label}</span>
                                 </button>
                             );
                         })}
                     </div>
 
                     {/* Status Filter and Sort */}
-                    <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-                        <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
+                        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
                             {getLibraryCategories(mediaType).map((category) => (
                                 <button
                                     key={category.id}
                                     onClick={() => setStatusFilter(category.id)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${statusFilter === category.id
+                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${statusFilter === category.id
                                             ? 'bg-slate-700 text-white'
                                             : 'bg-slate-800/50 text-slate-400 hover:text-white'
                                         }`}
@@ -704,12 +713,12 @@ const SharedListDetail = ({ session }) => {
                             ))}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <ArrowUpDown size={16} className="text-slate-500" />
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <ArrowUpDown size={14} className="text-slate-500 sm:w-4 sm:h-4" />
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="bg-slate-800 border border-slate-700 py-2 px-3 rounded-lg text-sm outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                                className="bg-slate-800 border border-slate-700 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm outline-none focus:border-blue-500 transition-colors cursor-pointer"
                             >
                                 {SORT_OPTIONS.map((option) => (
                                     <option key={option.id} value={option.id}>{option.label}</option>
@@ -720,7 +729,7 @@ const SharedListDetail = ({ session }) => {
 
                     {/* Items Grid */}
                     {sortedItems.length > 0 ? (
-                        <div className="flex gap-4 flex-wrap">
+                        <div className="flex gap-3 sm:gap-4 flex-wrap">
                             {sortedItems.map((item) => (
                                 <LibraryCard
                                     key={item.id}
